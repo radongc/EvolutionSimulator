@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +23,7 @@ public class Environment : MonoBehaviour
 
     // Game variables
     [Header("Game Variables")]
+    public DateTime gameStartTimestamp;
     public int currentDay = 0;
     [SerializeField] private float dayTimer = 0f;
     public float timeScale = 1f;
@@ -36,6 +38,9 @@ public class Environment : MonoBehaviour
     public List<Creature> creatures = new List<Creature>();
     public List<GameObject> food = new List<GameObject>();
 
+    public List<int> daysOverTime = new List<int>();
+    public List<int> creatureNumOverTime = new List<int>();
+
     private void Awake()
     {
         if (instance)
@@ -49,6 +54,8 @@ public class Environment : MonoBehaviour
     {
         PopulateCreatures();
         PopulateFood();
+
+        gameStartTimestamp = DateTime.Now;
     }
 
     // Update is called once per frame
@@ -105,15 +112,49 @@ public class Environment : MonoBehaviour
         averageSense = totalSense / creatureCount;
         averageSize = totalSize / creatureCount;
 
-        string path1 = "Assets/Resources/test1.txt";
-        StreamWriter writer1 = new StreamWriter(path1, true);
-        writer1.Write($"{currentDay}, ");
-        writer1.Close();
+        daysOverTime.Add(currentDay);
+        creatureNumOverTime.Add(creatureCount);
 
-        string path2 = "Assets/Resources/test2.txt";
-        StreamWriter writer2 = new StreamWriter(path2, true);
-        writer2.Write($"{creatureCount}, ");
-        writer2.Close();
+        // Record graph info every 10 days.
+        if (currentDay % 10 == 0)
+        {
+            string daysFileName = $"GRAPH_days_{gameStartTimestamp.ToShortDateString()}-{gameStartTimestamp.ToLongTimeString()}.txt";
+            string creaturesFileName = $"GRAPH_creatures_{gameStartTimestamp.ToShortDateString()}-{gameStartTimestamp.ToLongTimeString()}.txt";
+            
+            daysFileName = daysFileName.Replace('/', '_').Replace(':', '_');
+            creaturesFileName = creaturesFileName.Replace('/', '_').Replace(':', '_');
+
+            string graphDaysPath = $"Assets/Resources/{daysFileName}";
+            string graphCreaturesPath = $"Assets/Resources/{creaturesFileName}";
+
+            if (!File.Exists(graphDaysPath))
+            {
+                var fs = new FileStream(graphDaysPath, FileMode.Create);
+                fs.Dispose();
+            }
+            if (!File.Exists(graphCreaturesPath))
+            {
+                var fs = new FileStream(graphCreaturesPath, FileMode.Create);
+                fs.Dispose();
+            }
+            
+            foreach (int i in daysOverTime)
+            {
+                StreamWriter daysWriter = new StreamWriter(graphDaysPath, true);
+                daysWriter.Write($"{i}, ");
+                daysWriter.Close();
+            }
+
+            foreach (int i in creatureNumOverTime)
+            {
+                StreamWriter creaturesWriter = new StreamWriter(graphCreaturesPath, true);
+                creaturesWriter.Write($"{i}, ");
+                creaturesWriter.Close();
+            }
+
+            daysOverTime.Clear();
+            creatureNumOverTime.Clear();
+        }
     }
 
     public Creature MakeCreature(Vector3 position)
@@ -133,11 +174,11 @@ public class Environment : MonoBehaviour
     public Vector2 GetMapBounds() => new Vector2(transform.localScale.x, transform.localScale.z);
 
     public Vector3 GetRandomPosition() => new Vector3(
-                                                       Random.Range(
+                                                       UnityEngine.Random.Range(
                                                            -(GetMapBounds().x / 2f),
                                                            GetMapBounds().x / 2f),
                                                        0.5f,
-                                                       Random.Range(
+                                                       UnityEngine.Random.Range(
                                                            -(GetMapBounds().y / 2f),
                                                            GetMapBounds().y / 2f)
                                                       );
