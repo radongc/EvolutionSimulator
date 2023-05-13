@@ -37,17 +37,18 @@ public class Creature : MonoBehaviour
     [SerializeField] private bool isPregnant = false;
     private float pregnancyTime = 10f;
     private float currentPregnancyTime = 0f;
+    private float pregnancyEnergyCost = 100f;
 
-    // Mutation
-    private float mutationChance = 0.15f;
-    private float mutationRange = 0.2f;
-
-    // Game variables
-    private bool initialized = false;
-    private bool fleeing = false;
+    // Mutation constants
+    private const float mutationChance = 0.15f;
+    private const float mutationRange = 0.2f;
 
     // Game constants
-    private float predatorSize = 1.4f;
+    private const float predatorSize = 1.4f;
+
+    // Game variables
+    private bool isInitialized = false;
+    [SerializeField] private bool isFleeing = false;
 
     // Start is called before the first frame update
     public void Initialize(float speed, float sense, float size)
@@ -59,13 +60,17 @@ public class Creature : MonoBehaviour
         // Correlate size trait with actual in-game size.
         transform.localScale = new Vector3(size, size, size);
 
-        initialized = true;
+        // Testing out increasing energy cost of large size for reproduction.
+        maxEnergy = size * 200f;
+        pregnancyEnergyCost = maxEnergy / 2;
+
+        isInitialized = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (initialized)
+        if (isInitialized)
         {
             // TODO: Make these static formulas somehow.
             if (realSpeed == 0)
@@ -78,7 +83,7 @@ public class Creature : MonoBehaviour
 
             CheckVicinityFood();
 
-            if (target && !fleeing)
+            if (target && !isFleeing)
                 targetPosition = target.position;
             else
             {
@@ -88,14 +93,14 @@ public class Creature : MonoBehaviour
                 Collider potentialFood = GetClosestFood(hitColliders);
                 Collider potentialPredator = GetPotentialPredator(hitColliders);
 
-                if (fleeing)
+                if (isFleeing)
                 {
                     // Get direction and move 6 units away from there in that direction.
                     Vector3 direction = Vector3.Normalize(targetPosition - transform.position);
                     Vector3 offset = transform.position + direction * 6f;
                     targetPosition = transform.position + offset;
                 }
-                else if (Vector3.Distance(transform.position, targetPosition) < 1.5f)
+                else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x * 1.1f)
                     targetPosition = Environment.instance.GetRandomPosition();
 
                 if (potentialFood)
@@ -105,12 +110,12 @@ public class Creature : MonoBehaviour
 
                 if (potentialPredator)
                 {
-                    fleeing = true;
+                    isFleeing = true;
                     Debug.Log("Fleeing!");
                 }
                 else
                 {
-                    fleeing = false;
+                    isFleeing = false;
                 }
             }
 
@@ -118,7 +123,7 @@ public class Creature : MonoBehaviour
             if (!isPregnant && energy >= maxEnergy)
             {
                 isPregnant = true;
-                energy -= 100f;
+                energy -= pregnancyEnergyCost;
                 currentPregnancyTime = 0f;
             }
 
@@ -153,7 +158,11 @@ public class Creature : MonoBehaviour
                         mutationSize = Random.Range(-mutationRange * 1.25f, mutationRange * 1.25f);
                     }
 
-                    offspring.GetComponent<Creature>().Initialize(speed + (speed * mutationSpeed), sense + (sense * mutationSense), size + (size * mutationSize));
+                    float offspringSpeed = speed + (speed * mutationSpeed);
+                    float offspringSense = sense + (sense * mutationSense);
+                    float offspringSize = size + (size * mutationSize);
+
+                    offspring.GetComponent<Creature>().Initialize(offspringSpeed, offspringSense, offspringSize);
 
                     // Reset pregnancy
                     isPregnant = false;
@@ -173,15 +182,15 @@ public class Creature : MonoBehaviour
     {
         transform.position = Vector3.MoveTowards(transform.position, position, realSpeed * Time.deltaTime);
 
-        // Reduce energy based on movement. Size makes speed cost more while pregnant.
+        // Reduce energy based on movement. Size costs 25% more energy while pregnant.
         //movementEnergyCost = (1.2f * (isPregnant ? speed * size : speed) + 1.1f * sense) * size;
-        movementEnergyCost = (Mathf.Pow(size, 3) * Mathf.Pow(speed, 2)) + sense; 
+        movementEnergyCost = ((size * 2.25f) * (speed * 1.5f)) + sense; 
         energy -= movementEnergyCost * Time.deltaTime;
     }
 
     private void CheckVicinityFood()
     {
-        Collider[] foodCheck = Physics.OverlapSphere(transform.position, transform.localScale.x * 0.8f);
+        Collider[] foodCheck = Physics.OverlapSphere(transform.position, transform.localScale.x * 1.1f);
 
         bool consumed = false;
 
@@ -208,14 +217,14 @@ public class Creature : MonoBehaviour
 
     void EatFood(GameObject food)
     {
-        energy += 40f;
+        energy += 50f;
         Environment.instance.food.Remove(food);
         Destroy(food);
     }
 
     void EatCreature(Creature creature)
     {
-        energy += 85f;
+        energy += (creature.size * 100f);
         creature.GetEatenOrDie();
         Debug.Log("Creature ate a creatuer!");
     }

@@ -13,17 +13,18 @@ public class Environment : MonoBehaviour
 
     // Initialization values
     [Header("Initialization Values")]
-    public float startingSpeed = 2f;
-    public float startingSense = 2f;
+    public float startingSpeed = 1f;
+    public float startingSense = 1f;
     public float startingSize = 1f;
 
     public int startingCreatureNum = 5;
-    public int foodPerDay = 25;
+    public Vector2 foodPerDayRange = new Vector2(25, 50);
     public float dayDuration = 10f;
 
     // Game variables
     [Header("Game Variables")]
     public DateTime gameStartTimestamp;
+    public int realFoodPerDay = 0;
     public int currentDay = 0;
     [SerializeField] private float dayTimer = 0f;
     public float timeScale = 1f;
@@ -87,7 +88,9 @@ public class Environment : MonoBehaviour
 
     void PopulateFood()
     {
-        for (int i = 0; i < foodPerDay; i++)
+        realFoodPerDay = (int)UnityEngine.Random.Range(foodPerDayRange.x, foodPerDayRange.y);
+
+        for (int i = 0; i < realFoodPerDay; i++)
         {
             MakeFood(GetRandomPosition());
         }
