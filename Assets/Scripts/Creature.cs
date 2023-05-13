@@ -62,6 +62,7 @@ public class Creature : MonoBehaviour
 
         // Testing out increasing energy cost of large size for reproduction.
         maxEnergy = size * 200f;
+        energy = maxEnergy / 2;
         pregnancyEnergyCost = maxEnergy / 2;
 
         isInitialized = true;
@@ -70,122 +71,31 @@ public class Creature : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isInitialized)
-        {
-            // TODO: Make these static formulas somehow.
-            if (realSpeed == 0)
-                realSpeed = speed * 2.5f;
-            if (realSense == 0)
-                realSense = sense * 5f;
+        if (!isInitialized) { return; }
 
-            // Move towards target
-            MoveTo(targetPosition);
-
-            CheckVicinityFood();
-
-            if (target && !isFleeing)
-                targetPosition = target.position;
-            else
-            {
-                // Search for food
-                Collider[] hitColliders = Physics.OverlapSphere(transform.position, realSense);
-
-                Collider potentialFood = GetClosestFood(hitColliders);
-                Collider potentialPredator = GetPotentialPredator(hitColliders);
-
-                if (isFleeing)
-                {
-                    // Get direction and move 6 units away from there in that direction.
-                    Vector3 direction = Vector3.Normalize(targetPosition - transform.position);
-                    Vector3 offset = transform.position + direction * 6f;
-                    targetPosition = transform.position + offset;
-                }
-                else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x * 1.1f)
-                    targetPosition = Environment.instance.GetRandomPosition();
-
-                if (potentialFood)
-                {
-                    target = potentialFood.transform;
-                }
-
-                if (potentialPredator)
-                {
-                    isFleeing = true;
-                    Debug.Log("Fleeing!");
-                }
-                else
-                {
-                    isFleeing = false;
-                }
-            }
-
-            // Check for reproduction
-            if (!isPregnant && energy >= maxEnergy)
-            {
-                isPregnant = true;
-                energy -= pregnancyEnergyCost;
-                currentPregnancyTime = 0f;
-            }
-
-            // Reproduce if pregnant
-            if (isPregnant)
-            {
-                currentPregnancyTime += Time.deltaTime;
-
-                if (currentPregnancyTime >= pregnancyTime)
-                {
-                    // Spawn offspring
-                    Vector3 offspringPosition = transform.position + new Vector3(1f, 0f, 1f);
-                    Creature offspring = Environment.instance.MakeCreature(offspringPosition);
-
-                    float mutationSpeed = 0f;
-                    float mutationSense = 0f;
-                    float mutationSize = 0f;
-
-                    // Mutate offspring
-                    if (Random.Range(0f, 1f) <= mutationChance)
-                    {
-                        mutationSpeed = Random.Range(-mutationRange, mutationRange);
-                    }
-
-                    if (Random.Range(0f, 1f) <= mutationChance)
-                    {
-                        mutationSense = Random.Range(-mutationRange, mutationRange);
-                    }
-
-                    if (Random.Range(0f, 1f) <= mutationChance)
-                    {
-                        mutationSize = Random.Range(-mutationRange * 1.25f, mutationRange * 1.25f);
-                    }
-
-                    float offspringSpeed = speed + (speed * mutationSpeed);
-                    float offspringSense = sense + (sense * mutationSense);
-                    float offspringSize = size + (size * mutationSize);
-
-                    offspring.GetComponent<Creature>().Initialize(offspringSpeed, offspringSense, offspringSize);
-
-                    // Reset pregnancy
-                    isPregnant = false;
-                    currentPregnancyTime = 0f;
-                }
-            }
-
-            // Check for death
-            if (energy <= 0f)
-            {
-                GetEatenOrDie();
-            }
-        }
+        UpdateMovement();
+        CheckVicinityFood();
+        CheckReproduction();
+        CheckPregnancyState();
+        CheckDeath();
     }
 
-    void MoveTo(Vector3 position)
+    private void UpdateMovement()
     {
-        transform.position = Vector3.MoveTowards(transform.position, position, realSpeed * Time.deltaTime);
+        if (realSpeed == 0)
+            realSpeed = speed * 2.5f;
+        if (realSense == 0)
+            realSense = sense * 5f;
 
-        // Reduce energy based on movement. Size costs 25% more energy while pregnant.
-        //movementEnergyCost = (1.2f * (isPregnant ? speed * size : speed) + 1.1f * sense) * size;
-        movementEnergyCost = ((size * 2.25f) * (speed * 1.5f)) + sense; 
-        energy -= movementEnergyCost * Time.deltaTime;
+        // Move towards target
+        MoveTo(targetPosition);
+
+        if (target && !isFleeing)
+            targetPosition = target.position;
+        else
+        {
+            SenseFoodAndPredators();
+        }
     }
 
     private void CheckVicinityFood()
@@ -213,6 +123,120 @@ public class Creature : MonoBehaviour
 
         if (consumed)
             targetPosition = Environment.instance.GetRandomPosition();
+    }
+
+    private void CheckReproduction()
+    {
+        if (!isPregnant && energy >= maxEnergy)
+        {
+            isPregnant = true;
+            energy -= pregnancyEnergyCost;
+            currentPregnancyTime = 0f;
+        }
+    }
+
+    private void CheckPregnancyState()
+    {
+        // Reproduce if pregnant
+        if (isPregnant)
+        {
+            currentPregnancyTime += Time.deltaTime;
+
+            if (currentPregnancyTime >= pregnancyTime)
+            {
+                Reproduce();
+            }
+        }
+    }
+
+    private void CheckDeath()
+    {
+        if (energy <= 0f)
+        {
+            GetEatenOrDie();
+        }
+    }
+
+    private void SenseFoodAndPredators()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, realSense);
+
+        Collider potentialFood = GetClosestFood(hitColliders);
+        Collider potentialPredator = GetPotentialPredator(hitColliders);
+
+        if (isFleeing)
+        {
+            // Get direction and move 6 units away from there in that direction.
+            Vector3 direction = Vector3.Normalize(targetPosition - transform.position);
+            Vector3 offset = transform.position + direction * 6f;
+            targetPosition = transform.position + offset;
+        }
+        else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x * 1.1f)
+            targetPosition = Environment.instance.GetRandomPosition();
+
+        if (potentialFood)
+        {
+            target = potentialFood.transform;
+        }
+
+        if (potentialPredator)
+        {
+            isFleeing = true;
+            Debug.Log("Fleeing!");
+        }
+        else
+        {
+            isFleeing = false;
+        }
+    }
+
+    private void Reproduce()
+    {
+        // Spawn offspring
+        Vector3 offspringPosition = transform.position + new Vector3(1f, 0f, 1f);
+        Creature offspring = Environment.instance.MakeCreature(offspringPosition);
+
+        float mutationSpeed = 0f;
+        float mutationSense = 0f;
+        float mutationSize = 0f;
+
+        // Mutate offspring
+        if (Random.Range(0f, 1f) <= mutationChance)
+        {
+            mutationSpeed = Random.Range(-mutationRange, mutationRange);
+        }
+
+        if (Random.Range(0f, 1f) <= mutationChance)
+        {
+            mutationSense = Random.Range(-mutationRange, mutationRange);
+        }
+
+        if (Random.Range(0f, 1f) <= mutationChance)
+        {
+            mutationSize = Random.Range(-mutationRange * 1.25f, mutationRange * 1.25f);
+        }
+
+        float offspringSpeed = speed + (speed * mutationSpeed);
+        float offspringSense = sense + (sense * mutationSense);
+        float offspringSize = size + (size * mutationSize);
+
+        offspring.GetComponent<Creature>().Initialize(offspringSpeed, offspringSense, offspringSize);
+
+        // Reset pregnancy
+        isPregnant = false;
+        currentPregnancyTime = 0f;
+    }
+
+    void MoveTo(Vector3 position)
+    {
+        transform.position = Vector3.MoveTowards(transform.position, position, realSpeed * Time.deltaTime);
+
+        // Reduce energy based on movement. Size costs 25% more energy while pregnant.
+        // Trying out different energy formulas..
+        //movementEnergyCost = (1.2f * (isPregnant ? speed * size : speed) + 1.1f * sense) * size;
+        //movementEnergyCost = ((size * 2.25f) * (speed * 1.5f)) + sense;
+        movementEnergyCost = ((speed * 3.5f) + (sense * 2f)) * size;
+        energy -= movementEnergyCost * Time.deltaTime;
     }
 
     void EatFood(GameObject food)

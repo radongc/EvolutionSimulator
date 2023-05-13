@@ -25,6 +25,7 @@ public class Environment : MonoBehaviour
     [Header("Game Variables")]
     public DateTime gameStartTimestamp;
     public int realFoodPerDay = 0;
+    public int maxFoodPerDay = 0;
     public int currentDay = 0;
     [SerializeField] private float dayTimer = 0f;
     public float timeScale = 1f;
@@ -88,7 +89,9 @@ public class Environment : MonoBehaviour
 
     void PopulateFood()
     {
-        realFoodPerDay = (int)UnityEngine.Random.Range(foodPerDayRange.x, foodPerDayRange.y);
+        // Clamp total food in environment to 50% higher than the highest possible food per day.
+        maxFoodPerDay = (int)(foodPerDayRange.y + (foodPerDayRange.y * 0.5f));
+        realFoodPerDay = (int)Mathf.Min(UnityEngine.Random.Range(foodPerDayRange.x, foodPerDayRange.y), maxFoodPerDay - food.Count);
 
         for (int i = 0; i < realFoodPerDay; i++)
         {

@@ -235,12 +235,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   creaturePrefab: {fileID: 1127815226180310649, guid: 7cbb34dd972132f45b536989785d8049, type: 3}
   foodPrefab: {fileID: 8142216218940438644, guid: 7683cd52c73a85f4cba294d16608c94f, type: 3}
-  startingSpeed: 2
-  startingSense: 2
+  startingSpeed: 1
+  startingSense: 1
   startingSize: 1
   startingCreatureNum: 5
-  foodPerDay: 25
+  foodPerDayRange: {x: 10, y: 25}
   dayDuration: 10
+  realFoodPerDay: 0
+  maxFoodPerDay: 0
   currentDay: 0
   dayTimer: 0
   timeScale: 1
