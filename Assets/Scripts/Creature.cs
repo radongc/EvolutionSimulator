@@ -6,7 +6,12 @@ using UnityEngine;
 // Creature class.
 // NOTES:
 // Separation of concerns should've been implemented. Movement related code should go in one class, trait related in another, and eating in another.
-// Damn AI! (Backbone of class generated from ChatGPT)
+// (Backbone of class generated from ChatGPT)
+
+// Future ideas:
+// Introduce trait that:
+// * Affects gestation period
+// * Affects energy needed to be pregnant
 
 public class Creature : MonoBehaviour
 {
@@ -34,7 +39,7 @@ public class Creature : MonoBehaviour
     private float currentPregnancyTime = 0f;
 
     // Mutation
-    private float mutationChance = 0.5f;
+    private float mutationChance = 0.15f;
     private float mutationRange = 0.2f;
 
     // Game variables
@@ -42,7 +47,7 @@ public class Creature : MonoBehaviour
     private bool fleeing = false;
 
     // Game constants
-    private float predatorSize = 1.1f;
+    private float predatorSize = 1.4f;
 
     // Start is called before the first frame update
     public void Initialize(float speed, float sense, float size)
@@ -135,10 +140,17 @@ public class Creature : MonoBehaviour
                     // Mutate offspring
                     if (Random.Range(0f, 1f) <= mutationChance)
                     {
-                        // TODO: Mutation changes are currently additive; they maybe should be multiplicative.
                         mutationSpeed = Random.Range(-mutationRange, mutationRange);
+                    }
+
+                    if (Random.Range(0f, 1f) <= mutationChance)
+                    {
                         mutationSense = Random.Range(-mutationRange, mutationRange);
-                        mutationSize = Random.Range(-mutationRange * 2, mutationRange * 2);
+                    }
+
+                    if (Random.Range(0f, 1f) <= mutationChance)
+                    {
+                        mutationSize = Random.Range(-mutationRange * 1.25f, mutationRange * 1.25f);
                     }
 
                     offspring.GetComponent<Creature>().Initialize(speed + (speed * mutationSpeed), sense + (sense * mutationSense), size + (size * mutationSize));
@@ -161,8 +173,9 @@ public class Creature : MonoBehaviour
     {
         transform.position = Vector3.MoveTowards(transform.position, position, realSpeed * Time.deltaTime);
 
-        // Reduce energy based on movement. Speed costs 50% more while pregnant.
-        movementEnergyCost = (1.2f * (isPregnant ? speed * 1.50f : speed) + 1.1f * sense) * size;
+        // Reduce energy based on movement. Size makes speed cost more while pregnant.
+        //movementEnergyCost = (1.2f * (isPregnant ? speed * size : speed) + 1.1f * sense) * size;
+        movementEnergyCost = (Mathf.Pow(size, 3) * Mathf.Pow(speed, 2)) + sense; 
         energy -= movementEnergyCost * Time.deltaTime;
     }
 
@@ -195,14 +208,14 @@ public class Creature : MonoBehaviour
 
     void EatFood(GameObject food)
     {
-        energy += 30f;
+        energy += 40f;
         Environment.instance.food.Remove(food);
         Destroy(food);
     }
 
     void EatCreature(Creature creature)
     {
-        energy += 70f;
+        energy += 85f;
         creature.GetEatenOrDie();
         Debug.Log("Creature ate a creatuer!");
     }

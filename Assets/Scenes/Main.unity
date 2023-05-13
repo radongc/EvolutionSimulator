@@ -239,7 +239,7 @@ MonoBehaviour:
   startingSense: 2
   startingSize: 1
   startingCreatureNum: 5
-  foodPerDay: 25
+  foodPerDay: 150
   dayDuration: 10
   currentDay: 0
   dayTimer: 0
@@ -262,7 +262,7 @@ GameObject:
   - component: {fileID: 459571051}
   - component: {fileID: 459571050}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Boundary
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -288,7 +288,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 459571049}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -339,8 +339,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 459571049}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.93, z: -50}
-  m_LocalScale: {x: 99.528, y: 4.3721, z: 0.2093}
+  m_LocalPosition: {x: 0, y: 1.93, z: -51.11}
+  m_LocalScale: {x: 99.528, y: 4.3721, z: 2.31}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -453,7 +453,7 @@ GameObject:
   - component: {fileID: 981642938}
   - component: {fileID: 981642937}
   m_Layer: 0
-  m_Name: Cube (2)
+  m_Name: Boundary
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -479,7 +479,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 981642936}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -530,8 +530,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 981642936}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -50, y: 1.93, z: 0}
-  m_LocalScale: {x: 99.528, y: 4.3721, z: 0.2093}
+  m_LocalPosition: {x: -51.08, y: 1.93, z: 0}
+  m_LocalScale: {x: 99.528, y: 4.3721, z: 2.31}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -550,7 +550,7 @@ GameObject:
   - component: {fileID: 1061163581}
   - component: {fileID: 1061163580}
   m_Layer: 0
-  m_Name: Cube (3)
+  m_Name: Boundary
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -576,7 +576,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1061163579}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -627,8 +627,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1061163579}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 50, y: 1.93, z: 0}
-  m_LocalScale: {x: 99.528, y: 4.3721, z: 0.2093}
+  m_LocalPosition: {x: 51.05, y: 1.93, z: -0}
+  m_LocalScale: {x: 99.528, y: 4.3721, z: 2.31}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -731,7 +731,7 @@ GameObject:
   - component: {fileID: 2107404376}
   - component: {fileID: 2107404375}
   m_Layer: 0
-  m_Name: Cube (1)
+  m_Name: Boundary
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -757,7 +757,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2107404374}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -808,8 +808,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2107404374}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.93, z: 50}
-  m_LocalScale: {x: 99.528, y: 4.3721, z: 0.2093}
+  m_LocalPosition: {x: 0, y: 1.93, z: 51.08}
+  m_LocalScale: {x: 99.528, y: 4.3721, z: 2.31}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

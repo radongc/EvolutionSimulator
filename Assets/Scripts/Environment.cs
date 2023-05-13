@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Environment : MonoBehaviour
@@ -103,6 +104,16 @@ public class Environment : MonoBehaviour
         averageSpeed = totalSpeed / creatureCount;
         averageSense = totalSense / creatureCount;
         averageSize = totalSize / creatureCount;
+
+        string path1 = "Assets/Resources/test1.txt";
+        StreamWriter writer1 = new StreamWriter(path1, true);
+        writer1.Write($"{currentDay}, ");
+        writer1.Close();
+
+        string path2 = "Assets/Resources/test2.txt";
+        StreamWriter writer2 = new StreamWriter(path2, true);
+        writer2.Write($"{creatureCount}, ");
+        writer2.Close();
     }
 
     public Creature MakeCreature(Vector3 position)
@@ -125,7 +136,7 @@ public class Environment : MonoBehaviour
                                                        Random.Range(
                                                            -(GetMapBounds().x / 2f),
                                                            GetMapBounds().x / 2f),
-                                                       0.75f,
+                                                       0.5f,
                                                        Random.Range(
                                                            -(GetMapBounds().y / 2f),
                                                            GetMapBounds().y / 2f)
