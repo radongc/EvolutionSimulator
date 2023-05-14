@@ -27,20 +27,20 @@ public class Creature : MonoBehaviour
     // Energy
     [SerializeField] private float energy = 100f;
     [SerializeField] private float maxEnergy = 200f;
+    [SerializeField] private float movementEnergyCost;
+    private float pregnancyEnergyCost = 100f;
 
     // Movement
     [SerializeField] private Transform target;
     [SerializeField] private Vector3 targetPosition;
-    [SerializeField] private float movementEnergyCost;
 
     // Reproduction
     [SerializeField] private bool isPregnant = false;
     private float pregnancyTime = 10f;
     private float currentPregnancyTime = 0f;
-    private float pregnancyEnergyCost = 100f;
 
     // Mutation constants
-    private const float mutationChance = 0.15f;
+    private const float mutationChance = 0.25f;
     private const float mutationRange = 0.2f;
 
     // Game constants
@@ -50,7 +50,6 @@ public class Creature : MonoBehaviour
     private bool isInitialized = false;
     [SerializeField] private bool isFleeing = false;
 
-    // Start is called before the first frame update
     public void Initialize(float speed, float sense, float size)
     {
         this.speed = speed;
@@ -58,14 +57,24 @@ public class Creature : MonoBehaviour
         this.size = size;
 
         // Correlate size trait with actual in-game size.
-        transform.localScale = new Vector3(size, size, size);
+        SetRealSize();
 
         // Testing out increasing energy cost of large size for reproduction.
+        SetMaxEnergy();
+
+        isInitialized = true;
+    }
+
+    private void SetRealSize() 
+    {
+        transform.localScale = new Vector3(size, size, size);
+    }
+
+    private void SetMaxEnergy()
+    {
         maxEnergy = size * 200f;
         energy = maxEnergy / 2;
         pregnancyEnergyCost = maxEnergy / 2;
-
-        isInitialized = true;
     }
 
     // Update is called once per frame
@@ -122,7 +131,7 @@ public class Creature : MonoBehaviour
         }
 
         if (consumed)
-            targetPosition = Environment.instance.GetRandomPosition();
+            targetPosition = GetRandomPositionNearMe();
     }
 
     private void CheckReproduction()
@@ -171,8 +180,8 @@ public class Creature : MonoBehaviour
             Vector3 offset = transform.position + direction * 6f;
             targetPosition = transform.position + offset;
         }
-        else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x * 1.1f)
-            targetPosition = Environment.instance.GetRandomPosition();
+        else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x  - (transform.localScale.x * 0.25f))
+            targetPosition = GetRandomPositionNearMe();
 
         if (potentialFood)
         {
@@ -213,7 +222,7 @@ public class Creature : MonoBehaviour
 
         if (Random.Range(0f, 1f) <= mutationChance)
         {
-            mutationSize = Random.Range(-mutationRange * 1.25f, mutationRange * 1.25f);
+            mutationSize = Random.Range(-mutationRange, mutationRange);
         }
 
         float offspringSpeed = speed + (speed * mutationSpeed);
@@ -237,6 +246,28 @@ public class Creature : MonoBehaviour
         //movementEnergyCost = ((size * 2.25f) * (speed * 1.5f)) + sense;
         movementEnergyCost = ((speed * 3.5f) + (sense * 2f)) * size;
         energy -= movementEnergyCost * Time.deltaTime;
+    }
+
+    Vector3 GetRandomPositionNearMe()
+    {
+        Vector3 pos = transform.position;
+
+        pos.x = pos.x + Random.Range(-10f, 10f);
+        pos.z = pos.z + Random.Range(-10f, 10f);
+
+        if (pos.x > Environment.instance.GetMapBounds().x / 2f)
+            pos.x = (Environment.instance.GetMapBounds().x / 2f) - 1;
+
+        if (pos.z > Environment.instance.GetMapBounds().y / 2f)
+            pos.z = (Environment.instance.GetMapBounds().y / 2f) - 1;
+
+        if (pos.x < -(Environment.instance.GetMapBounds().x / 2f))
+            pos.x = -(Environment.instance.GetMapBounds().x / 2f) + 1;
+
+        if (pos.z < -(Environment.instance.GetMapBounds().y / 2f))
+            pos.z = -(Environment.instance.GetMapBounds().y / 2f) + 1;
+
+        return pos;
     }
 
     void EatFood(GameObject food)

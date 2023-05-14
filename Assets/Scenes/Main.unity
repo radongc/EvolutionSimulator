@@ -239,7 +239,7 @@ MonoBehaviour:
   startingSense: 1
   startingSize: 1
   startingCreatureNum: 5
-  foodPerDayRange: {x: 10, y: 25}
+  foodPerDayRange: {x: 50, y: 80}
   dayDuration: 10
   realFoodPerDay: 0
   maxFoodPerDay: 0
