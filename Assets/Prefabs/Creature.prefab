@@ -103,10 +103,11 @@ MonoBehaviour:
   size: 1
   energy: 100
   maxEnergy: 200
+  movementEnergyCost: 0
   target: {fileID: 0}
   targetPosition: {x: 0, y: 0, z: 0}
-  movementEnergyCost: 0
   isPregnant: 0
+  isFleeing: 0
 --- !u!54 &5439237232318405431
 Rigidbody:
   m_ObjectHideFlags: 0

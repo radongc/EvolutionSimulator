@@ -9,7 +9,10 @@ public class Environment : MonoBehaviour
     public static Environment instance;
 
     public GameObject creaturePrefab;
+
+    public GameObject smallFoodPrefab;
     public GameObject foodPrefab;
+    public GameObject largeFoodPrefab;
 
     // Initialization values
     [Header("Initialization Values")]
@@ -17,16 +20,21 @@ public class Environment : MonoBehaviour
     public float startingSense = 1f;
     public float startingSize = 1f;
 
+    [Header("Game Constants")]
     public int startingCreatureNum = 5;
     public Vector2 foodPerDayRange = new Vector2(25, 50);
+    public Vector2 dailyTempRange = new Vector2(50f, 80f);
     public float dayDuration = 10f;
+    public float foodExpirationTime = 10f;
 
     // Game variables
-    [Header("Game Variables")]
     public DateTime gameStartTimestamp;
+    
+    [Header("Game Variables")]
     public int realFoodPerDay = 0;
     public int maxFoodPerDay = 0;
     public int currentDay = 0;
+    public float realTemperature = 70f;
     [SerializeField] private float dayTimer = 0f;
     public float timeScale = 1f;
 
@@ -38,7 +46,7 @@ public class Environment : MonoBehaviour
     // Containers
     [Header("Containers")]
     public List<Creature> creatures = new List<Creature>();
-    public List<GameObject> food = new List<GameObject>();
+    public List<Food> food = new List<Food>();
 
     public List<int> daysOverTime = new List<int>();
     public List<int> creatureNumOverTime = new List<int>();
@@ -173,7 +181,23 @@ public class Environment : MonoBehaviour
 
     void MakeFood(Vector3 position)
     {
-        GameObject foodInstance = Instantiate(foodPrefab, position, Quaternion.identity);
+        GameObject prefabToUse;
+        int randomChance = UnityEngine.Random.Range(0, 3);
+
+        if (randomChance == 0)
+        {
+            prefabToUse = smallFoodPrefab;
+        }
+        else if (randomChance == 1)
+        {
+            prefabToUse = foodPrefab;
+        }
+        else
+        {
+            prefabToUse = largeFoodPrefab;
+        }
+
+        Food foodInstance = Instantiate(prefabToUse, position, Quaternion.identity).GetComponent<Food>();
         food.Add(foodInstance);
     }
 

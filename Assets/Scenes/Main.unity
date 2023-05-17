@@ -234,16 +234,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   creaturePrefab: {fileID: 1127815226180310649, guid: 7cbb34dd972132f45b536989785d8049, type: 3}
+  smallFoodPrefab: {fileID: 8142216218940438644, guid: 8b61616cc19449841a642df46bbe1df3, type: 3}
   foodPrefab: {fileID: 8142216218940438644, guid: 7683cd52c73a85f4cba294d16608c94f, type: 3}
+  largeFoodPrefab: {fileID: 8142216218940438644, guid: ba22619b03c91984fb5eeb84c7a5279f, type: 3}
   startingSpeed: 1
   startingSense: 1
   startingSize: 1
-  startingCreatureNum: 5
-  foodPerDayRange: {x: 50, y: 80}
+  startingCreatureNum: 100
+  foodPerDayRange: {x: 10, y: 115}
+  dailyTempRange: {x: 50, y: 80}
   dayDuration: 10
   realFoodPerDay: 0
   maxFoodPerDay: 0
   currentDay: 0
+  realTemperature: 70
   dayTimer: 0
   timeScale: 1
   averageSpeed: 1

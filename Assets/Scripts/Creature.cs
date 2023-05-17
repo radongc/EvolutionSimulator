@@ -44,9 +44,10 @@ public class Creature : MonoBehaviour
     private const float mutationRange = 0.2f;
 
     // Game constants
-    private const float predatorSize = 1.4f;
+    private const float predatorSize = 1.65f;
 
     // Game variables
+    private Color materialColor;
     private bool isInitialized = false;
     [SerializeField] private bool isFleeing = false;
 
@@ -60,7 +61,11 @@ public class Creature : MonoBehaviour
         SetRealSize();
 
         // Testing out increasing energy cost of large size for reproduction.
-        SetMaxEnergy();
+        // This creates biases toward being too small, and occasionally too big. It is how it works in nature, but I'm not sure how to fix the bias.
+        //SetMaxEnergy();
+
+        materialColor = GetComponent<Renderer>().material.color;
+        targetPosition = GetRandomPositionNearMe();
 
         isInitialized = true;
     }
@@ -83,6 +88,7 @@ public class Creature : MonoBehaviour
         if (!isInitialized) { return; }
 
         UpdateMovement();
+        SensePredators();
         CheckVicinityFood();
         CheckReproduction();
         CheckPregnancyState();
@@ -103,7 +109,25 @@ public class Creature : MonoBehaviour
             targetPosition = target.position;
         else
         {
-            SenseFoodAndPredators();
+            if (isFleeing)
+            {
+                // Get direction and move 6 units away from there in that direction.
+                Vector3 direction = Vector3.Normalize(targetPosition - transform.position);
+                Vector3 offset = transform.position + direction * 6f;
+                targetPosition = transform.position + offset;
+
+                if (GetComponent<Renderer>().material.color != Color.red)
+                    GetComponent<Renderer>().material.color = Color.red;
+            }
+            else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x - (transform.localScale.x * 0.25f))
+            {
+                targetPosition = GetRandomPositionNearMe();
+
+                if (GetComponent<Renderer>().material.color != materialColor)
+                    GetComponent<Renderer>().material.color = materialColor;
+            }
+
+            SenseFood();
         }
     }
 
@@ -117,9 +141,9 @@ public class Creature : MonoBehaviour
         {
             if (other.transform == target)
             {
-                if (other.CompareTag("Food"))
+                if (other.GetComponent<Food>())
                 {
-                    EatFood(other.gameObject);
+                    EatFood(other.GetComponent<Food>());
                     consumed = true;
                 }
                 else if (other.GetComponent<Creature>()) // We don't need to check size as, if this creature is our target, that has already been done. (Maybe faulty thinking? Who knows!)
@@ -158,6 +182,31 @@ public class Creature : MonoBehaviour
         }
     }
 
+    private bool CanEat(Food food)
+    {
+        if (food.foodType == FoodType.Small)
+        {
+            if (size >= 0.55f)
+                return true;
+            else
+                return false;
+        }
+        else if (food.foodType == FoodType.Regular)
+        {
+            if (size >= 0.85f)
+                return true;
+            else
+                return false;
+        }
+        else
+        {
+            if (size >= 1.15f)
+                return true;
+            else
+                return false;
+        }
+    }
+
     private void CheckDeath()
     {
         if (energy <= 0f)
@@ -166,27 +215,21 @@ public class Creature : MonoBehaviour
         }
     }
 
-    private void SenseFoodAndPredators()
+    private void SenseFood()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, realSense);
-
         Collider potentialFood = GetClosestFood(hitColliders);
-        Collider potentialPredator = GetPotentialPredator(hitColliders);
-
-        if (isFleeing)
-        {
-            // Get direction and move 6 units away from there in that direction.
-            Vector3 direction = Vector3.Normalize(targetPosition - transform.position);
-            Vector3 offset = transform.position + direction * 6f;
-            targetPosition = transform.position + offset;
-        }
-        else if (Vector3.Distance(transform.position, targetPosition) < transform.localScale.x  - (transform.localScale.x * 0.25f))
-            targetPosition = GetRandomPositionNearMe();
 
         if (potentialFood)
         {
             target = potentialFood.transform;
         }
+    }
+
+    private void SensePredators()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, realSense);
+        Collider potentialPredator = GetPotentialPredator(hitColliders);
 
         if (potentialPredator)
         {
@@ -244,7 +287,8 @@ public class Creature : MonoBehaviour
         // Trying out different energy formulas..
         //movementEnergyCost = (1.2f * (isPregnant ? speed * size : speed) + 1.1f * sense) * size;
         //movementEnergyCost = ((size * 2.25f) * (speed * 1.5f)) + sense;
-        movementEnergyCost = ((speed * 3.5f) + (sense * 2f)) * size;
+        //movementEnergyCost = ((speed * 3.5f) + (sense * 2f)) * size;
+        movementEnergyCost = ((Mathf.Pow(size, 3) * Mathf.Pow(speed, 2)) + sense) * 2;
         energy -= movementEnergyCost * Time.deltaTime;
     }
 
@@ -252,8 +296,8 @@ public class Creature : MonoBehaviour
     {
         Vector3 pos = transform.position;
 
-        pos.x = pos.x + Random.Range(-10f, 10f);
-        pos.z = pos.z + Random.Range(-10f, 10f);
+        pos.x = pos.x + Random.Range(-realSense, realSense);
+        pos.z = pos.z + Random.Range(-realSense, realSense);
 
         if (pos.x > Environment.instance.GetMapBounds().x / 2f)
             pos.x = (Environment.instance.GetMapBounds().x / 2f) - 1;
@@ -270,11 +314,9 @@ public class Creature : MonoBehaviour
         return pos;
     }
 
-    void EatFood(GameObject food)
+    void EatFood(Food food)
     {
-        energy += 50f;
-        Environment.instance.food.Remove(food);
-        Destroy(food);
+        energy += food.ConsumeEnergy();
     }
 
     void EatCreature(Creature creature)
@@ -292,7 +334,7 @@ public class Creature : MonoBehaviour
         Vector3 currentPos = transform.position;
         foreach (Collider t in objects)
         {
-            if (t.CompareTag("Food") || t.GetComponent<Creature>() && t.GetComponent<Creature>().size * predatorSize < size)
+            if (t.GetComponent<Food>() && CanEat(t.GetComponent<Food>()) || t.GetComponent<Creature>() && t.GetComponent<Creature>().size * predatorSize < size)
             {
                 float dist = Vector3.Distance(t.transform.position, currentPos);
                 if (dist < minDist)
