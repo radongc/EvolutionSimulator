@@ -19,6 +19,7 @@ public class Creature : MonoBehaviour
     [SerializeField] private float speed;
     [SerializeField] private float sense;
     [SerializeField] private float size;
+    [SerializeField] private MouthSize mouthSize;
 
     // Usable trait values
     private float realSpeed;
@@ -51,11 +52,12 @@ public class Creature : MonoBehaviour
     private bool isInitialized = false;
     [SerializeField] private bool isFleeing = false;
 
-    public void Initialize(float speed, float sense, float size)
+    public void Initialize(float speed, float sense, float size, MouthSize mouthSize)
     {
         this.speed = speed;
         this.sense = sense;
         this.size = size;
+        this.mouthSize = mouthSize;
 
         // Correlate size trait with actual in-game size.
         SetRealSize();
@@ -182,31 +184,6 @@ public class Creature : MonoBehaviour
         }
     }
 
-    private bool CanEat(Food food)
-    {
-        if (food.foodType == FoodType.Small)
-        {
-            if (size >= 0.55f)
-                return true;
-            else
-                return false;
-        }
-        else if (food.foodType == FoodType.Regular)
-        {
-            if (size >= 0.85f)
-                return true;
-            else
-                return false;
-        }
-        else
-        {
-            if (size >= 1.15f)
-                return true;
-            else
-                return false;
-        }
-    }
-
     private void CheckDeath()
     {
         if (energy <= 0f)
@@ -251,6 +228,7 @@ public class Creature : MonoBehaviour
         float mutationSpeed = 0f;
         float mutationSense = 0f;
         float mutationSize = 0f;
+        MouthSize mutationMouthSize = mouthSize;
 
         // Mutate offspring
         if (Random.Range(0f, 1f) <= mutationChance)
@@ -268,11 +246,19 @@ public class Creature : MonoBehaviour
             mutationSize = Random.Range(-mutationRange, mutationRange);
         }
 
+        if (Random.Range(0f, 1f) <= mutationChance)
+        {
+            if (mouthSize == MouthSize.Small)
+                mutationMouthSize = MouthSize.Large;
+            else if (mouthSize == MouthSize.Large)
+                mutationMouthSize = MouthSize.Small;
+        }
+
         float offspringSpeed = speed + (speed * mutationSpeed);
         float offspringSense = sense + (sense * mutationSense);
         float offspringSize = size + (size * mutationSize);
 
-        offspring.GetComponent<Creature>().Initialize(offspringSpeed, offspringSense, offspringSize);
+        offspring.GetComponent<Creature>().Initialize(offspringSpeed, offspringSense, offspringSize, mutationMouthSize);
 
         // Reset pregnancy
         isPregnant = false;
@@ -312,6 +298,44 @@ public class Creature : MonoBehaviour
             pos.z = -(Environment.instance.GetMapBounds().y / 2f) + 1;
 
         return pos;
+    }
+
+    private bool IsMouthCorrectSize(Food food)
+    {
+        if (mouthSize == MouthSize.Large)
+            return true;
+        else if (mouthSize == MouthSize.Small && food.foodHardness == FoodHardness.Soft)
+            return true;
+        else
+            return false;
+    }
+
+    private bool CanEat(Food food)
+    {
+        if (!IsMouthCorrectSize(food))
+            return false;
+
+        if (food.foodType == FoodType.Small)
+        {
+            if (size >= 0.55f)
+                return true;
+            else
+                return false;
+        }
+        else if (food.foodType == FoodType.Regular)
+        {
+            if (size >= 0.85f)
+                return true;
+            else
+                return false;
+        }
+        else
+        {
+            if (size >= 1.15f)
+                return true;
+            else
+                return false;
+        }
     }
 
     void EatFood(Food food)
@@ -369,4 +393,11 @@ public class Creature : MonoBehaviour
     public float GetSpeed() => speed;
     public float GetSense() => sense;
     public float GetSize() => size;
+    public MouthSize GetMouthSize() => mouthSize;
+}
+
+public enum MouthSize
+{
+    Small,
+    Large
 }

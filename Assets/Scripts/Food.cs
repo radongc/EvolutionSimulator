@@ -6,10 +6,21 @@ using UnityEngine.UIElements;
 public class Food : MonoBehaviour
 {
     public FoodType foodType;
+    public FoodHardness foodHardness;
+
     private float expirationTimer = 0;
+    private bool hasSetColor = false;
 
     private void Update()
     {
+        if (!hasSetColor)
+        {
+            if (foodHardness == FoodHardness.Soft)
+                GetComponent<Renderer>().material.color = Color.green;
+            else
+                GetComponent<Renderer>().material.color = Color.black;
+        }
+
         if (expirationTimer >= Environment.instance.foodExpirationTime)
         {
             Environment.instance.food.Remove(this);
@@ -47,4 +58,10 @@ public enum FoodType
     Small,
     Regular,
     Large
+}
+
+public enum FoodHardness
+{
+    Soft,
+    Hard,
 }

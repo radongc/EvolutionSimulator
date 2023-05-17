@@ -19,6 +19,7 @@ public class Environment : MonoBehaviour
     public float startingSpeed = 1f;
     public float startingSense = 1f;
     public float startingSize = 1f;
+    public MouthSize startingMouthSize = MouthSize.Small;
 
     [Header("Game Constants")]
     public int startingCreatureNum = 5;
@@ -42,6 +43,8 @@ public class Environment : MonoBehaviour
     [SerializeField] private float averageSpeed = 1f;
     [SerializeField] private float averageSense = 1f;
     [SerializeField] private float averageSize = 1f;
+    [SerializeField] private float smallMouthPercent = 1f;
+    [SerializeField] private float largeMouthPercent = 1f;
 
     // Containers
     [Header("Containers")]
@@ -91,7 +94,7 @@ public class Environment : MonoBehaviour
         for (int i = 0; i < startingCreatureNum; i++)
         {
             Creature creatureInstance = MakeCreature(GetRandomPosition());
-            creatureInstance.Initialize(startingSpeed, startingSense, startingSize);
+            creatureInstance.Initialize(startingSpeed, startingSense, startingSize, startingMouthSize);
         }
     }
 
@@ -114,17 +117,30 @@ public class Environment : MonoBehaviour
         float totalSpeed = 0f;
         float totalSense = 0f;
         float totalSize = 0f;
+        int totalSmallMouth = 0;
+        int totalLargeMouth = 0;
 
         foreach (Creature creature in creatures)
         {
             totalSpeed += creature.GetSpeed();
             totalSense += creature.GetSense();
             totalSize += creature.GetSize();
+
+            if (creature.GetMouthSize() == MouthSize.Small)
+                totalSmallMouth++;
+            else if (creature.GetMouthSize() == MouthSize.Large)
+                totalLargeMouth++;
         }
 
         averageSpeed = totalSpeed / creatureCount;
         averageSense = totalSense / creatureCount;
         averageSize = totalSize / creatureCount;
+
+        if (creatureCount > 0)
+        {
+            smallMouthPercent = ((float)totalSmallMouth / (float)creatureCount) * 100f;
+            largeMouthPercent = ((float)totalLargeMouth / (float)creatureCount) * 100f;
+        }
 
         daysOverTime.Add(currentDay);
         creatureNumOverTime.Add(creatureCount);
@@ -179,25 +195,39 @@ public class Environment : MonoBehaviour
         return creatureInstance;
     }
 
+    // The chances for small/med/large and soft/hard should be adjustable, and, like other variables, fluctuating over time.
     void MakeFood(Vector3 position)
     {
         GameObject prefabToUse;
-        int randomChance = UnityEngine.Random.Range(0, 3);
+        int foodSizeChance = UnityEngine.Random.Range(0, 4);
 
-        if (randomChance == 0)
+        // 50% chance small, 25% reg, 25% large
+        if (foodSizeChance == 0)
         {
-            prefabToUse = smallFoodPrefab;
+            prefabToUse = largeFoodPrefab;
         }
-        else if (randomChance == 1)
+        else if (foodSizeChance == 1)
         {
             prefabToUse = foodPrefab;
         }
         else
         {
-            prefabToUse = largeFoodPrefab;
+            prefabToUse = smallFoodPrefab;
         }
 
+        int foodHardnessChance = UnityEngine.Random.Range(0, 3);
         Food foodInstance = Instantiate(prefabToUse, position, Quaternion.identity).GetComponent<Food>();
+        
+        // 66% of food is soft, 33% hard
+        if (foodHardnessChance == 0)
+        {
+            foodInstance.foodHardness = FoodHardness.Hard;
+        }
+        else
+        {
+            foodInstance.foodHardness = FoodHardness.Soft;
+        }
+        
         food.Add(foodInstance);
     }
 
