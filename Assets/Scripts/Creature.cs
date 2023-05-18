@@ -66,6 +66,15 @@ public class Creature : MonoBehaviour
         // This creates biases toward being too small, and occasionally too big. It is how it works in nature, but I'm not sure how to fix the bias.
         //SetMaxEnergy();
 
+        if (mouthSize == MouthSize.Large)
+        {
+            GetComponent<Renderer>().material.color = Color.blue;
+        }
+        else
+        {
+            GetComponent<Renderer>().material.color = Color.cyan;
+        }
+
         materialColor = GetComponent<Renderer>().material.color;
         targetPosition = GetRandomPositionNearMe();
 
@@ -315,26 +324,13 @@ public class Creature : MonoBehaviour
         if (!IsMouthCorrectSize(food))
             return false;
 
-        if (food.foodType == FoodType.Small)
+        if (food.foodScale <= size)
         {
-            if (size >= 0.55f)
-                return true;
-            else
-                return false;
-        }
-        else if (food.foodType == FoodType.Regular)
-        {
-            if (size >= 0.85f)
-                return true;
-            else
-                return false;
+            return true;
         }
         else
         {
-            if (size >= 1.15f)
-                return true;
-            else
-                return false;
+            return false;
         }
     }
 

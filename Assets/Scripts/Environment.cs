@@ -198,36 +198,35 @@ public class Environment : MonoBehaviour
     // The chances for small/med/large and soft/hard should be adjustable, and, like other variables, fluctuating over time.
     void MakeFood(Vector3 position)
     {
-        GameObject prefabToUse;
-        int foodSizeChance = UnityEngine.Random.Range(0, 4);
+        float foodSize;
 
-        // 50% chance small, 25% reg, 25% large
-        if (foodSizeChance == 0)
+        // Could make foodSize range 0.4 to 1.7 if large food roll hits, to make it even more unpredictable.
+        int largeFoodChance = UnityEngine.Random.Range(0, 4);
+        if (largeFoodChance == 0)
         {
-            prefabToUse = largeFoodPrefab;
-        }
-        else if (foodSizeChance == 1)
-        {
-            prefabToUse = foodPrefab;
+            foodSize = UnityEngine.Random.Range(1f, 1.7f);
         }
         else
         {
-            prefabToUse = smallFoodPrefab;
+            foodSize = UnityEngine.Random.Range(0.4f, 1f);
         }
 
-        int foodHardnessChance = UnityEngine.Random.Range(0, 3);
-        Food foodInstance = Instantiate(prefabToUse, position, Quaternion.identity).GetComponent<Food>();
-        
-        // 66% of food is soft, 33% hard
+        FoodHardness foodHardness;
+
+        int foodHardnessChance = UnityEngine.Random.Range(0, 4);
+        Food foodInstance = Instantiate(foodPrefab, position, Quaternion.identity).GetComponent<Food>();
+
+        // 75% of food is soft, 25% hard
         if (foodHardnessChance == 0)
         {
-            foodInstance.foodHardness = FoodHardness.Hard;
+            foodHardness = FoodHardness.Hard;
         }
         else
         {
-            foodInstance.foodHardness = FoodHardness.Soft;
+            foodHardness = FoodHardness.Soft;
         }
-        
+
+        foodInstance.Initialize(foodSize, foodHardness);
         food.Add(foodInstance);
     }
 

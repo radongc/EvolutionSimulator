@@ -5,11 +5,19 @@ using UnityEngine.UIElements;
 
 public class Food : MonoBehaviour
 {
-    public FoodType foodType;
     public FoodHardness foodHardness;
+    public float foodScale;
 
     private float expirationTimer = 0;
     private bool hasSetColor = false;
+
+    public void Initialize(float scale, FoodHardness hardness)
+    {
+        foodScale = scale;
+        foodHardness = hardness;
+
+        transform.localScale = new Vector3(foodScale, foodScale, foodScale);
+    }
 
     private void Update()
     {
@@ -32,20 +40,7 @@ public class Food : MonoBehaviour
 
     public float ConsumeEnergy()
     {
-        float energy = 0f;
-
-        if (foodType == FoodType.Small)
-        {
-            energy = 25f;
-        }
-        else if (foodType == FoodType.Regular)
-        {
-            energy = 50f;
-        }
-        else if (foodType == FoodType.Large)
-        {
-            energy = 75f;
-        }
+        float energy = (foodScale / 2f) * 100f;
 
         Environment.instance.food.Remove(this);
         Destroy(gameObject);
